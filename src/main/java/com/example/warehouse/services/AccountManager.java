@@ -16,6 +16,7 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.http.*;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -29,10 +30,13 @@ public class AccountManager implements AccountQueryManager {
 
     public final KeycloakService keycloakService;
     public final UserRepository userRepository;
+    public final KafkaTemplate<String, String> kafkaTemplate;
 
-    public AccountManager(KeycloakService keycloakService,UserRepository userRepository) {
+
+    public AccountManager(KeycloakService keycloakService, UserRepository userRepository, KafkaTemplate<String, String> kafkaTemplate) {
         this.keycloakService = keycloakService;
         this.userRepository = userRepository;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     // xu ly logic dang ky tai khoan
@@ -114,7 +118,7 @@ public class AccountManager implements AccountQueryManager {
     // xu ly logic dang nhap
     @Override
     public ApiResponse<Token> login(AccountRequest loginRequest) {
-        loginValidate(loginRequest);
+//        loginValidate(loginRequest);
         RestTemplate restTemplate = new RestTemplate();
         String url = Contants.TOKEN_URL;
 
@@ -137,6 +141,8 @@ public class AccountManager implements AccountQueryManager {
         }
 
         Token token = new Gson().fromJson(response.getBody(), Token.class);
+
+         kafkaTemplate.send("my-topic", new Gson().toJson(token));
 
         return ApiResponse.<Token>builder()
                 .statusCode(Code.SUCCESS.getCode())
