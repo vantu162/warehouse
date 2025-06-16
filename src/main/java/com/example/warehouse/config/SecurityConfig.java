@@ -1,7 +1,7 @@
 package com.example.warehouse.config;
 
+import com.example.warehouse.model.entity.Token;
 import com.example.warehouse.util.Contants;
-import com.fasterxml.jackson.databind.ser.std.StringSerializer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +14,12 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.kafka.support.serializer.JsonSerializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 
+
+
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -48,20 +53,24 @@ public class SecurityConfig {
     public JwtDecoder jwtDecoder() {
         return JwtDecoders.fromIssuerLocation(Contants.REALMS_URL);
     }
+    @Bean
+    public ProducerFactory<String, Token> producerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092"); // 👈 đổi nếu Kafka khác port
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
 
-//    @Bean
-//    public ProducerFactory<String, String> producerFactory() {
-//        return new DefaultKafkaProducerFactory<>(Map.of(
-//                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092",
-//                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
-//                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class
-//        ));
-//    }
+        JsonSerializer<Token> jsonSerializer = new JsonSerializer<>();
+        jsonSerializer.setAddTypeInfo(false); // 👈 để gửi JSON thuần, không @class
 
-//    @Bean
-//    public KafkaTemplate<String, String> kafkaTemplate() {
-//        return new KafkaTemplate<>(producerFactory());
-//    }
+        DefaultKafkaProducerFactory<String, Token> factory = new DefaultKafkaProducerFactory<>(props);
+        factory.setValueSerializer(jsonSerializer);
+        return factory;
+    }
 
+    @Bean
+    public KafkaTemplate<String, Token> kafkaTemplate() {
+        return new KafkaTemplate<>(producerFactory());
+    }
 
 }

@@ -30,10 +30,11 @@ public class AccountManager implements AccountQueryManager {
 
     public final KeycloakService keycloakService;
     public final UserRepository userRepository;
-    public final KafkaTemplate<String, String> kafkaTemplate;
+    public final KafkaTemplate<String, Token> kafkaTemplate;
 
 
-    public AccountManager(KeycloakService keycloakService, UserRepository userRepository, KafkaTemplate<String, String> kafkaTemplate) {
+
+    public AccountManager(KeycloakService keycloakService, UserRepository userRepository, KafkaTemplate<String, Token> kafkaTemplate) {
         this.keycloakService = keycloakService;
         this.userRepository = userRepository;
         this.kafkaTemplate = kafkaTemplate;
@@ -142,7 +143,7 @@ public class AccountManager implements AccountQueryManager {
 
         Token token = new Gson().fromJson(response.getBody(), Token.class);
 
-         kafkaTemplate.send("my-topic", new Gson().toJson(token));
+         kafkaTemplate.send("my-topic-02", token);
 
         return ApiResponse.<Token>builder()
                 .statusCode(Code.SUCCESS.getCode())
