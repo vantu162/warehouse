@@ -19,6 +19,7 @@ import com.example.warehouse.util.Validate;
 import com.google.gson.Gson;
 import jakarta.persistence.criteria.*;
 import jakarta.transaction.Transactional;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,22 +33,29 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import static java.rmi.server.LogStream.log;
 
 @Service
 public class LoanManager implements LoanQueryManager
 {
+    private final org.slf4j.Logger logger = LoggerFactory.getLogger(LoanManager.class);
     public final LoanRepository loanRepository;
     public final CollateralRepository collateralRepository;
     public final UserRepository userRepository;
     public final LoansRepository loansRepository;
 
+    public final LoansNativeQuery loansNativeQuery;
+
     public LoanManager(LoanRepository loanRepository, CollateralRepository collateralRepository,
-                       UserRepository userRepository, LoansRepository loansRepository) {
+                       UserRepository userRepository, LoansRepository loansRepository, LoansNativeQuery loansNativeQuery) {
         this.loanRepository = loanRepository;
         this.collateralRepository = collateralRepository;
         this.userRepository = userRepository;
         this.loansRepository = loansRepository;
+        this.loansNativeQuery = loansNativeQuery;
     }
 
     // xu logic tao khoan vay the chap
@@ -175,6 +183,22 @@ public class LoanManager implements LoanQueryManager
                 .build();
     }
 
+    @Override
+    public ResponseSearch<Loans> getListLoanByEntityManager(CollateralRequest request, JwtAuthenticationToken token) {
+
+        Page<Loans> pages = loansNativeQuery.builderQuerySearch(request);
+        System.out.println("query EntityMananger Loans : " + new Gson().toJson(pages));
+        List<Loans> datas = pages.getContent();
+
+        return ResponseSearch.<Loans>builder()
+                .currentPage(pages.getNumber())
+                .pageSize(pages.getSize())
+                .totalElements(pages.getTotalElements())
+                .totalPages(pages.getTotalPages())
+                .data(datas)
+                .build();
+    }
+
     // dung page de tra ve du lieu cho phan trang
     private Page<Loans> getPageSearch(CollateralRequest request, String username) {
         Specification<Loans> loans = (root, query, criteriaBuilder) -> builderSearchQuery(root, criteriaBuilder,
@@ -184,11 +208,15 @@ public class LoanManager implements LoanQueryManager
     }
     // gop cac dieu kien loc voi nhau theo dieu kien loc: status AND (column OR column...)
     private Predicate builderSearchQuery(Root<Loans> root, CriteriaBuilder cb, String keyword, List<Integer> status, String username) {
+        logger.debug("Keyword nhận được: '{}'", keyword);
+
         List<Predicate> predicates = new ArrayList<>();
         if(!username.isEmpty()){
             predicates.add(cb.in(root.get(Contants.FILED_USERNAME)).value(username));
         }
         predicates.add(root.get(Contants.FILED_STATUS).in(status));
+
+//        predicates.add(cb.like(cb.lower(root.get("fullName")), "%" + keyword.toLowerCase() + "%"));
 
         List<Predicate> searchFiledPredicates = buildSearchFieldPredicatesQuery(cb, root, keyword);
         predicates.add(cb.or(searchFiledPredicates.toArray(new Predicate[0])));

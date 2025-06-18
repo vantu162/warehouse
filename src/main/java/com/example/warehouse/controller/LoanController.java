@@ -32,4 +32,9 @@ public class LoanController {
     public ResponseSearch<Loans> getLoans(JwtAuthenticationToken token, @RequestBody CollateralRequest collateralRequest) {
         return loanQueryManager.getListLoan(collateralRequest, token);
     }
+
+    @PostMapping("/warehouse/search_by_entitymanager")
+    public ResponseSearch<Loans> getLoansByEntityManager(JwtAuthenticationToken token, @RequestBody CollateralRequest collateralRequest) {
+        return loanQueryManager.getListLoanByEntityManager(collateralRequest, token);
+    }
 }

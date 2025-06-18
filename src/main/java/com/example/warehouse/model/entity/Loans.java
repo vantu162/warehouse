@@ -2,7 +2,9 @@ package com.example.warehouse.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.Subselect;
 
@@ -42,4 +44,5 @@ public class Loans {
     private int status;
     private String nameStatus;
     private String fullName;
+
 }

@@ -11,4 +11,5 @@ public interface LoanQueryManager {
   ApiResponse<CollateralRequest> createLoan(JwtAuthenticationToken token, CollateralRequest collateralRequest);
   ApiResponse<Loan> updateLoan(CollateralRequest collateralRequest);
   ResponseSearch<Loans> getListLoan(CollateralRequest request, JwtAuthenticationToken token);
+  ResponseSearch<Loans> getListLoanByEntityManager(CollateralRequest request, JwtAuthenticationToken token);
 }
