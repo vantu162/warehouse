@@ -5,11 +5,12 @@ import com.example.warehouse.model.dto.CollateralRequest;
 import com.example.warehouse.model.dto.ResponseSearch;
 import com.example.warehouse.model.entity.Loan;
 import com.example.warehouse.model.entity.Loans;
+import com.example.warehouse.model.entity.Loansv1;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 public interface LoanQueryManager {
   ApiResponse<CollateralRequest> createLoan(JwtAuthenticationToken token, CollateralRequest collateralRequest);
   ApiResponse<Loan> updateLoan(CollateralRequest collateralRequest);
   ResponseSearch<Loans> getListLoan(CollateralRequest request, JwtAuthenticationToken token);
-  ResponseSearch<Loans> getListLoanByEntityManager(CollateralRequest request, JwtAuthenticationToken token);
+  ResponseSearch<Loansv1> getListLoanByEntityManager(CollateralRequest request, JwtAuthenticationToken token);
 }

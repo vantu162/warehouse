@@ -5,6 +5,7 @@ import com.example.warehouse.model.dto.ResponseSearch;
 import com.example.warehouse.model.dto.CollateralRequest;
 import com.example.warehouse.model.entity.Loans;
 import com.example.warehouse.model.entity.Loan;
+import com.example.warehouse.model.entity.Loansv1;
 import com.example.warehouse.repository.loan.LoanQueryManager;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +35,7 @@ public class LoanController {
     }
 
     @PostMapping("/warehouse/search_by_entitymanager")
-    public ResponseSearch<Loans> getLoansByEntityManager(JwtAuthenticationToken token, @RequestBody CollateralRequest collateralRequest) {
+    public ResponseSearch<Loansv1> getLoansByEntityManager(JwtAuthenticationToken token, @RequestBody CollateralRequest collateralRequest) {
         return loanQueryManager.getListLoanByEntityManager(collateralRequest, token);
     }
 }

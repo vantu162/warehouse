@@ -1,15 +1,15 @@
 package com.example.warehouse.services;
 
 import com.example.warehouse.model.dto.CollateralRequest;
-import com.example.warehouse.model.entity.Loans;
+import com.example.warehouse.model.entity.Loansv1;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
@@ -17,26 +17,37 @@ public class LoansNativeQuery {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public Page<Loans> builderQuerySearch(CollateralRequest request){
+    public Page<Loansv1> builderQuerySearch(CollateralRequest request){
 
         StringBuilder query = new StringBuilder();
         query.append(createQuery());
-        query.append(condition(request.keyword));
 
-        // Lấy dữ liệu với phân trang
-        List<Loans> loans = entityManager.createNativeQuery(query.toString(), Loans.class)
-                .setFirstResult(request.getPage())
+        if (request.getStatusCode() != null) {
+            query.append("WHERE l.status in :statusList ");
+        }
+
+        if (request.getKeyword() != null && !request.getKeyword().isEmpty()) {
+            query.append("AND lower(u.full_name)  like :keyword");
+        }
+
+        Query test= entityManager.createNativeQuery(query.toString(), Loansv1.class);
+        builderParameter(test, request);
+
+       // Lấy dữ liệu với phân trang
+        @SuppressWarnings("unchecked")
+        List<Loansv1> loans = test.setFirstResult(request.getPage())
                 .setMaxResults(request.getSize())
                 .getResultList();
 
+        String countSql = "SELECT COUNT(*) FROM (%s) AS total".formatted(query);
+        Query countQuery = entityManager.createNativeQuery(countSql);
+        builderParameter(countQuery, request);
 
-        // Đếm tổng số bản ghi
-        long totalElements = (long) entityManager.createNativeQuery("select count(*) from (" + query.toString() + ") AS total")
-                .getSingleResult();
+        Number total = (Number) countQuery.getSingleResult();
+        int totalElements = total.intValue();  // ✅ đây là số bản ghi tổng
 
         Pageable pageable= PageRequest.of(request.getPage(),request.getSize());
-        Page<Loans> db = new PageImpl<>(loans, pageable, totalElements);
-        return db;
+        return new PageImpl<>(loans, pageable, totalElements);
     }
 
     private String createQuery(){
@@ -55,10 +66,12 @@ public class LoansNativeQuery {
                 "left join User u on l.user_name = u.user_name ";
     }
 
-    private String condition(String keyword){
-        return "where l.status in (0,1,2) and (" +
-                "lower(u.full_name) like '%"+keyword+"%'" +
-                ")";
+    private void builderParameter(Query query,CollateralRequest request){
+        if (request.getStatusCode() != null) {
+            query.setParameter("statusList", request.getStatusCode());
+        }
+        if (request.getKeyword() != null && !request.getKeyword().isEmpty()) {
+            query.setParameter("keyword", "%" + request.getKeyword().toLowerCase() + "%");
+        }
     }
-
 }

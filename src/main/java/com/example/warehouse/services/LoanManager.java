@@ -4,13 +4,10 @@ import com.example.warehouse.exception.CustomException;
 import com.example.warehouse.model.dto.ApiResponse;
 import com.example.warehouse.model.dto.CollateralRequest;
 import com.example.warehouse.model.dto.ResponseSearch;
-import com.example.warehouse.model.entity.Loans;
+import com.example.warehouse.model.entity.*;
 import com.example.warehouse.repository.LoansRepository;
-import com.example.warehouse.model.entity.Collateral;
 import com.example.warehouse.repository.loan.CollateralRepository;
-import com.example.warehouse.model.entity.User;
 import com.example.warehouse.repository.acc.UserRepository;
-import com.example.warehouse.model.entity.Loan;
 import com.example.warehouse.repository.loan.LoanQueryManager;
 import com.example.warehouse.repository.loan.LoanRepository;
 import com.example.warehouse.util.Contants;
@@ -184,13 +181,13 @@ public class LoanManager implements LoanQueryManager
     }
 
     @Override
-    public ResponseSearch<Loans> getListLoanByEntityManager(CollateralRequest request, JwtAuthenticationToken token) {
+    public ResponseSearch<Loansv1> getListLoanByEntityManager(CollateralRequest request, JwtAuthenticationToken token) {
 
-        Page<Loans> pages = loansNativeQuery.builderQuerySearch(request);
+        Page<Loansv1> pages = loansNativeQuery.builderQuerySearch(request);
         System.out.println("query EntityMananger Loans : " + new Gson().toJson(pages));
-        List<Loans> datas = pages.getContent();
+        List<Loansv1> datas = pages.getContent();
 
-        return ResponseSearch.<Loans>builder()
+        return ResponseSearch.<Loansv1>builder()
                 .currentPage(pages.getNumber())
                 .pageSize(pages.getSize())
                 .totalElements(pages.getTotalElements())
