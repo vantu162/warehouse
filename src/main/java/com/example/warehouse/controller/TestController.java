@@ -15,4 +15,9 @@ public class TestController {
     public String content_1(){
         return "content 1";
     }
+
+    @PostMapping("/warehouse/content_2")
+    public String content_2(){
+        return "content 2";
+    }
 }
