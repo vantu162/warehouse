@@ -10,12 +10,16 @@ import org.springframework.stereotype.Service;
 public class RedisServices implements RedisManager{
 
     private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, Object> objectRedisTemplate;
 
     private final RedisKeyAndValueManager redisKeyAndValueManager;
 
-    public RedisServices(RedisTemplate<String, String> redisTemplate, RedisKeyAndValueManager redisKeyAndValueManager) {
+    public RedisServices(RedisTemplate<String, String> redisTemplate,
+                         RedisKeyAndValueManager redisKeyAndValueManager,
+                         RedisTemplate<String, Object> objectRedisTemplate) {
         this.redisTemplate = redisTemplate;
         this.redisKeyAndValueManager = redisKeyAndValueManager;
+        this.objectRedisTemplate = objectRedisTemplate;
     }
 
     // lay username theo key
